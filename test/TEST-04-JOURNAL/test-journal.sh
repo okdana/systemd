@@ -63,6 +63,9 @@ grep -q '^PRIORITY=6$' /output
 ! grep -q '^FOO=' /output
 ! grep -q '^SYSLOG_FACILITY=' /output
 
+# `-b all` negates earlier use of -b (-b and -m are otherwise exclusive)
+journalctl -b -1 -b all -m
+
 # Don't lose streams on restart
 systemctl start forever-print-hola
 sleep 3

@@ -264,7 +264,9 @@ static int parse_boot_descriptor(const char *x, sd_id128_t *boot_id, int *offset
         sd_id128_t id = SD_ID128_NULL;
         int off = 0, r;
 
-        if (strlen(x) >= 32) {
+        if (streq(x, "all"))
+          return 1;
+        } else if (strlen(x) >= 32) {
                 char *t;
 
                 t = strndupa(x, 32);
@@ -591,10 +593,14 @@ static int parse_argv(int argc, char *argv[]) {
 
                 case ARG_THIS_BOOT:
                         arg_boot = true;
+                        arg_boot_id = SD_ID128_NULL;
+                        arg_boot_offset = 0;
                         break;
 
                 case 'b':
-                        arg_boot = true;
+                        r = 0;
+                        arg_boot_id = SD_ID128_NULL;
+                        arg_boot_offset = 0;
 
                         if (optarg) {
                                 r = parse_boot_descriptor(optarg, &arg_boot_id, &arg_boot_offset);
@@ -611,10 +617,12 @@ static int parse_argv(int argc, char *argv[]) {
                                  * as a boot descriptor... */
 
                                 if (optind < argc &&
-                                    parse_boot_descriptor(argv[optind], &arg_boot_id, &arg_boot_offset) >= 0)
+                                    (r = parse_boot_descriptor(argv[optind], &arg_boot_id, &arg_boot_offset)) >= 0)
                                         optind++;
                         }
 
+                        /* Negate effect with 'all' (r > 0) */
+                        arg_boot = r > 0 ? false : true;
                         break;
 
                 case ARG_LIST_BOOTS:
